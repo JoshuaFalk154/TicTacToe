@@ -136,4 +136,36 @@ public class Game {
         }
         return stringBuilder.toString();
     }
+
+    public Cell[][] getBoard() {
+        return board;
+    }
+
+    public void setBoard(Cell[][] board) {
+        this.board = board;
+    }
+
+    public Player getPlayerOne() {
+        return playerOne;
+    }
+
+    public void setPlayerOne(Player playerOne) {
+        this.playerOne = playerOne;
+    }
+
+    public Player getPlayerTwo() {
+        return playerTwo;
+    }
+
+    public void setPlayerTwo(Player playerTwo) {
+        this.playerTwo = playerTwo;
+    }
+
+    public Player getPlayerToMove() {
+        return playerToMove;
+    }
+
+    public void setPlayerToMove(Player playerToMove) {
+        this.playerToMove = playerToMove;
+    }
 }

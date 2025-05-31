@@ -57,7 +57,12 @@ function updateGame(gameState) {
   if (childTable !== null) {
     parentDiv?.removeChild(childTable);
   }
-  childTable = createTable(gameState.board, "tictactoetableid");
+  //childTable = createTable(gameState.board, "tictactoetableid", "board");
+  childTable = createTable(
+    transformArray(gameState.board),
+    "tictactoetableid",
+    "board"
+  );
   parentDiv?.appendChild(childTable);
   initEventListenerTable();
   if (gameState.gameOver) {
@@ -65,9 +70,27 @@ function updateGame(gameState) {
   }
 }
 
-function createTable(tableData, tableId) {
+function transformArray(board) {
+  board.forEach((row, i1) => {
+    var row = board[i1];
+    row.forEach((cell, i2) => {
+      if (cell == 0) {
+        row[i2] = " ";
+      } else if (cell == 1) {
+        row[i2] = "X";
+      } else if (cell == 2) {
+        row[i2] = "O";
+      }
+    });
+  });
+
+  return board;
+}
+
+function createTable(tableData, tableId, tableClass) {
   var table = document.createElement("table");
   table.setAttribute("id", tableId);
+  table.setAttribute("class", tableClass);
   var tableBody = document.createElement("tbody");
 
   tableData.forEach(function (rowData) {

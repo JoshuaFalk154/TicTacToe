@@ -1,30 +1,10 @@
 package com.tictactoe.tictactoe;
 
 
+import java.util.Objects;
 
-public class GameState {
-
-    boolean gameOver;
-    int [][] board;
-
-    public GameState(boolean gameOver, int[][] board) {
-        this.gameOver = gameOver;
-        this.board = board;
-    }
-
-    public boolean isGameOver() {
-        return gameOver;
-    }
-
-    public void setGameOver(boolean gameOver) {
-        this.gameOver = gameOver;
-    }
-
-    public int[][] getBoard() {
-        return board;
-    }
-
-    public void setBoard(int[][] board) {
-        this.board = board;
+public record GameState(boolean gameOver, int [][] board, String winner) {
+    public GameState{
+        Objects.requireNonNull(board);
     }
 }

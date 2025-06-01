@@ -15,7 +15,7 @@ public class GameController {
 
     private final GameService gameService;
     private final GameServiceNew gameServiceNew;
-
+    private final Mapper mapper;
 
 
     @MessageMapping("/hello")
@@ -25,84 +25,37 @@ public class GameController {
                 HtmlUtils.htmlEscape(message.getName()) + sessionId);
     }
 
-    //
-//    @MessageMapping("/start-game")
-//    @SendTo("/topic/game")
-//    public GameState startGame(@Header("simpSessionId") String sessionId) {
-//
-//
-//        gameService.addPlayers(sessionId);
-//
-//        if (gameService.playersReady()) {
-//            gameService.initializeGame();
-//            Cell[][] cellBoard = gameService.getGame().getBoard();
-//            int[][] intBoard = new int[3][3];
-//
-//            for (int row = 0; row < cellBoard.length; row++) {
-//                for (int col = 0; col < cellBoard[row].length; col++) {
-//                    Cell cell = cellBoard[row][col];
-//                    int cellInt = 0;
-//                    if (cell.equals(Cell.X)) cellInt = 1;
-//                    if (cell.equals(Cell.O)) cellInt = 2;
-//
-//                    intBoard[row][col] = cellInt;
-//                }
-//            }
-//            return new GameState(gameService.getGame().isOver(), intBoard);
-//        }
-//
-//        return new GameState(false, new int[3][3]);
-//    }
 
-    @MessageMapping("/start-game")
+    @MessageMapping("/join-game")
     @SendTo("/topic/game")
-    public GameState startGame(@Header("simpSessionId") String sessionId) {
+    public GameState joinGame(@Header("simpSessionId") String sessionId) {
         GameSession currentGameSession = gameServiceNew.getGameSession();
-        currentGameSession.addPlayer(sessionId);
+        currentGameSession.addPlayer(sessionId, sessionId);
 
         if (currentGameSession.canStartGame()) {
             Game newGame = currentGameSession.startNewGame();
-            Cell[][] cellBoard = newGame.getBoard();
-            int[][] intBoard = new int[3][3];
-
-            for (int row = 0; row < cellBoard.length; row++) {
-                for (int col = 0; col < cellBoard[row].length; col++) {
-                    Cell cell = cellBoard[row][col];
-                    int cellInt = 0;
-                    if (cell.equals(Cell.X)) cellInt = 1;
-                    if (cell.equals(Cell.O)) cellInt = 2;
-
-                    intBoard[row][col] = cellInt;
-                }
-            }
-            return new GameState(newGame.isOver(), intBoard);
+            int[][] intBoard = mapper.cellBoardToIntBoard(newGame.getBoard());
+            return new GameState(newGame.isOver(), intBoard, "");
         }
 
-        return new GameState(false, new int[3][3]);
+        return new GameState(false, new int[3][3], "");
     }
 
+    @MessageMapping("/restart-game")
+    @SendTo("/topic/game")
+    public GameState restartGame(@Header("simpSessionId") String sessionId) {
+        GameSession currentGameSession = gameServiceNew.getGameSession();
+        currentGameSession.restartGame();
 
-//    @MessageMapping("/take-move")
-//    @SendTo("/topic/game")
-//    public GameState takeMove(Move move, @Header("simpSessionId") String sessionId) {
-//        gameService.makeMove(sessionId, move.row(), move.col());
-//
-//        Cell[][] cellBoard = gameService.getGame().getBoard();
-//        int[][] intBoard = new int[3][3];
-//
-//        for (int row = 0; row < cellBoard.length; row++) {
-//            for (int col = 0; col < cellBoard[row].length; col++) {
-//                Cell cell = cellBoard[row][col];
-//                int cellInt = 0;
-//                if (cell.equals(Cell.X)) cellInt = 1;
-//                if (cell.equals(Cell.O)) cellInt = 2;
-//
-//                intBoard[row][col] = cellInt;
-//            }
-//        }
-//
-//        return new GameState(gameService.getGame().isOver(), intBoard);
-//    }
+        if (currentGameSession.canStartGame()) {
+            Game newGame = currentGameSession.startNewGame();
+            int[][] intBoard = mapper.cellBoardToIntBoard(newGame.getBoard());
+            return new GameState(newGame.isOver(), intBoard, "");
+        }
+
+        return new GameState(false, new int[3][3], "");
+    }
+
 
     @MessageMapping("/take-move")
     @SendTo("/topic/game")
@@ -110,20 +63,15 @@ public class GameController {
         GameSession currentGameSession = gameServiceNew.getGameSession();
         currentGameSession.makeMove(sessionId, move.row(), move.col());
 
-        Cell[][] cellBoard = currentGameSession.getGame().getBoard();
-        int[][] intBoard = new int[3][3];
+        int[][] intBoard = mapper.cellBoardToIntBoard(currentGameSession.getGame().getBoard());
 
-        for (int row = 0; row < cellBoard.length; row++) {
-            for (int col = 0; col < cellBoard[row].length; col++) {
-                Cell cell = cellBoard[row][col];
-                int cellInt = 0;
-                if (cell.equals(Cell.X)) cellInt = 1;
-                if (cell.equals(Cell.O)) cellInt = 2;
-
-                intBoard[row][col] = cellInt;
-            }
+        String winner = "";
+        if (currentGameSession.getGame().isOver()) {
+            winner = currentGameSession.getGame().getWinner().get().cell().toString();
         }
 
-        return new GameState(currentGameSession.getGame().isOver(), intBoard);
+        return new GameState(currentGameSession.getGame().isOver(), intBoard, winner);
     }
+
+
 }

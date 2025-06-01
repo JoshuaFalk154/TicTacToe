@@ -57,7 +57,6 @@ function updateGame(gameState) {
   if (childTable !== null) {
     parentDiv?.removeChild(childTable);
   }
-  //childTable = createTable(gameState.board, "tictactoetableid", "board");
   childTable = createTable(
     transformArray(gameState.board),
     "tictactoetableid",
@@ -66,7 +65,27 @@ function updateGame(gameState) {
   parentDiv?.appendChild(childTable);
   initEventListenerTable();
   if (gameState.gameOver) {
-    $("#game").append("<p>Game Over</p>");
+    $("#game").prepend(
+      "<h2>Game Over</h2>",
+      "<h3> The Winner is: " + gameState.winner + "</h3>"
+    );
+    showElement("restartGame");
+  } else {
+    hideElement("none");
+  }
+}
+
+function showElement(elementId) {
+  var element = document.getElementById(elementId);
+  if (element?.style.display === "none") {
+    element.style.display = "block";
+  }
+}
+
+function hideElement(elementId) {
+  var element = document.getElementById(elementId);
+  if (element?.style.display !== "none") {
+    element.style.display = "block";
   }
 }
 
@@ -93,10 +112,10 @@ function createTable(tableData, tableId, tableClass) {
   table.setAttribute("class", tableClass);
   var tableBody = document.createElement("tbody");
 
-  tableData.forEach(function (rowData) {
+  tableData.forEach((rowData) => {
     var row = document.createElement("tr");
 
-    rowData.forEach(function (cellData) {
+    rowData.forEach((cellData) => {
       var cell = document.createElement("td");
       cell.appendChild(document.createTextNode(cellData));
       row.appendChild(cell);
@@ -104,34 +123,20 @@ function createTable(tableData, tableId, tableClass) {
 
     tableBody.appendChild(row);
   });
+
   table.appendChild(tableBody);
   initEventListenerTable();
   return table;
 }
 
-function updateTable(tableData, tableId) {
-  var table = document.getElementById(tableId);
-  var tableBody = table.tBodies[0];
-
-  tableData.forEach(function (rowData) {
-    var row = document.createElement("tr");
-
-    rowData.forEach(function (cellData) {
-      var cell = document.createElement("td");
-      cell.appendChild(document.createTextNode(cellData));
-      row.appendChild(cell);
-    });
-
-    tableBody.appendChild(row);
-  });
-
-  table.appendChild(tableBody);
-  document.body.appendChild(table);
-  initEventListenerTable();
+function startGame() {
+  stompClient.send("/app/join-game", {});
 }
 
-function startGame() {
-  stompClient.send("/app/start-game", {});
+function restartGame() {
+  $("#game").empty();
+  hideElement("restartGame");
+  stompClient.send("/app/restart-game", {});
 }
 
 function makeMove(row, col) {
@@ -169,5 +174,9 @@ $(function () {
   $("#startGame").click(function () {
     startGame();
   });
+  $("#restartGame").click(function () {
+    restartGame();
+  });
+
   //$( "#moveButton" ).click(function() { makeMove(); });
 });

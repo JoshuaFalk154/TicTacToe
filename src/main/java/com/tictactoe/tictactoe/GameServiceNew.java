@@ -9,9 +9,9 @@ import org.springframework.stereotype.Service;
 @Service
 @Getter
 @Setter
-//@RequiredArgsConstructor
 @NoArgsConstructor
 public class GameServiceNew {
+
 
     GameSession gameSession = new GameSession("randomStr");
 

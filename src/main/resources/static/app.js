@@ -1,6 +1,8 @@
 // @ts-check
 
 var stompClient = null;
+var sessionId = null;
+var gameSessionId = null;
 
 function setConnected(connected) {
   $("#connect").prop("disabled", connected);
@@ -18,6 +20,7 @@ function connect() {
   stompClient = Stomp.over(socket);
   stompClient.connect({}, function (frame) {
     setConnected(true);
+    sessionId = /\/([^\/]+)\/websocket/.exec(socket._transport.url)[1];
     console.log("Connected: " + frame);
     stompClient.subscribe("/topic/greetings", function (greeting) {
       showGreeting(JSON.parse(greeting.body));
@@ -54,24 +57,37 @@ function showGreeting(message) {
 function updateGame(gameState) {
   var parentDiv = document.getElementById("game");
   var childTable = document.getElementById("tictactoetableid");
-  if (childTable !== null) {
-    parentDiv?.removeChild(childTable);
-  }
-  childTable = createTable(
-    transformArray(gameState.board),
-    "tictactoetableid",
-    "board"
-  );
-  parentDiv?.appendChild(childTable);
-  initEventListenerTable();
-  if (gameState.gameOver) {
-    $("#game").prepend(
-      "<h2>Game Over</h2>",
-      "<h3> The Winner is: " + gameState.winner + "</h3>"
+  if (gameState.gameStarted) {
+    if (childTable !== null) {
+      parentDiv?.removeChild(childTable);
+    }
+
+    childTable = createTable(
+      transformArray(gameState.board),
+      "tictactoetableid",
+      "board"
     );
-    showElement("restartGame");
-  } else {
-    hideElement("none");
+    parentDiv?.appendChild(childTable);
+    initEventListenerTable();
+  }
+  showIfTrueElseHide("gameOverText", gameState.gameOver);
+  showIfTrueElseHide("waitingOnGame", gameState.waiting);
+}
+
+function showIfTrueElseHide(elementId, boolean) {
+  var element = document.getElementById(elementId);
+  // show element
+  if (boolean) {
+    if (element?.style.display === "none") {
+      element.style.display = "block";
+      return;
+    }
+  }
+  // hide element
+  else {
+    if (element?.style.display !== "none") {
+      element.style.display = "none";
+    }
   }
 }
 
@@ -130,15 +146,72 @@ function createTable(tableData, tableId, tableClass) {
 }
 
 function startGame() {
-  stompClient.send("/app/join-game", {});
+  // stompClient.send("/app/init-game/" + gameSessionId, {});
+}
+
+async function joinGame() {
+  const url = "http://localhost:8080/join-game?";
+  try {
+    const response = await fetch(
+      url +
+        new URLSearchParams({
+          simpSessionId: sessionId,
+        })
+    );
+
+    if (!response.ok) {
+      throw new Error(`Response status: ${response.status}`);
+    }
+
+    gameSessionId = await response.text();
+    subToCurrentGameSession();
+    getCurrentGame();
+  } catch (error) {
+    console.error(error.message);
+  }
+}
+
+function getCurrentGame() {
+  stompClient.send("/app/trigger-game-update/" + gameSessionId, {});
+}
+
+// function initGame() {
+//   stompClient.send("/app/init-game/" + gameSessionId, {});
+// }
+
+function subToCurrentGameSession() {
+  if (gameSessionId == null) {
+    console.log("error, no current session id");
+    return;
+  }
+  stompClient.subscribe(
+    "/topic/current-game/" + gameSessionId,
+    function (greeting) {
+      showGreeting(JSON.parse(greeting.body));
+    }
+  );
+  stompClient.subscribe(
+    "/topic/current-game/" + gameSessionId,
+    function (gameState) {
+      updateGame(JSON.parse(gameState.body));
+    }
+  );
 }
 
 function restartGame() {
   $("#game").empty();
   hideElement("restartGame");
-  stompClient.send("/app/restart-game", {});
 }
 
+// function makeMove(row, col) {
+//   var move = {
+//     row: row,
+//     col: col,
+//   };
+//   var moveJSON = JSON.stringify(move);
+//   console.log(moveJSON);
+//   stompClient.send("/app/take-move", {}, moveJSON);
+// }
 function makeMove(row, col) {
   var move = {
     row: row,
@@ -146,7 +219,7 @@ function makeMove(row, col) {
   };
   var moveJSON = JSON.stringify(move);
   console.log(moveJSON);
-  stompClient.send("/app/take-move", {}, moveJSON);
+  stompClient.send("/app/current-game/" + gameSessionId, {}, moveJSON);
 }
 
 function initEventListenerTable() {
@@ -171,12 +244,13 @@ $(function () {
   $("#send").click(function () {
     sendName();
   });
-  $("#startGame").click(function () {
-    startGame();
-  });
   $("#restartGame").click(function () {
     restartGame();
   });
-
-  //$( "#moveButton" ).click(function() { makeMove(); });
+  $("#joinGame").click(function () {
+    joinGame();
+  });
+  $("#startGame").click(function () {
+    startGame();
+  });
 });

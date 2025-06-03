@@ -11,12 +11,12 @@ import java.util.stream.Collectors;
 @Getter
 public class GameSession {
 
-    String lobbyId;
+    String id;
     Map<String, Player> playerSessionIdToPlayer = new HashMap<>();
     Game game;
 
     public GameSession(String lobbyId) {
-        this.lobbyId = lobbyId;
+        this.id = lobbyId;
     }
 
     public void addPlayer(String playerSessionId, String playerName) {
@@ -61,6 +61,10 @@ public class GameSession {
         }
 
         this.game.makeMove(playerSessionIdToPlayer.get(playerSessionId), row, col);
+    }
+
+    public boolean isAvailable() {
+        return playerSessionIdToPlayer.size() != 2;
     }
 
 }

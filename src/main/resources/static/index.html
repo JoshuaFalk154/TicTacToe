@@ -39,8 +39,11 @@
         <div class="col-md-4">
           <form class="form-inline">
             <div class="form-group">
-              <button id="startGame" class="btn btn-default" type="submit">
+              <button id="joinGame" class="btn btn-default" type="submit">
                 Join Game
+              </button>
+              <button id="startGame" class="btn btn-default" type="submit">
+                Start Game
               </button>
               <button id="leaveGame" class="btn btn-default" type="submit">
                 Leave Game
@@ -64,7 +67,10 @@
 
       <hr />
 
-      <div class="row" id="game"></div>
+      <div class="row" id="game">
+        <h2 id="gameOverText" style="display: none">Game Over</h2>
+        <p id="waitingOnGame" style="display: none">Waiting...</p>
+      </div>
     </div>
   </body>
 </html>

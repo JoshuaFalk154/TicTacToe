@@ -98,6 +98,7 @@ function updateGame(gameState) {
     hideElement("waitingOnGame");
     hideElement("yourTurn");
     hideElement("othersTurn");
+    showElement("restartGame");
 
     if (gameState.board !== null) {
       if (childTable !== null) {
@@ -113,24 +114,6 @@ function updateGame(gameState) {
     }
     // TODO remove table
   }
-
-  // var parentDiv = document.getElementById("game");
-  // var childTable = document.getElementById("tictactoetableid");
-  // if (gameState.gameStarted) {
-  //   if (childTable !== null) {
-  //     parentDiv?.removeChild(childTable);
-  //   }
-
-  //   childTable = createTable(
-  //     transformArray(gameState.board),
-  //     "tictactoetableid",
-  //     "board"
-  //   );
-  //   parentDiv?.appendChild(childTable);
-  //   initEventListenerTable();
-  // }
-  // showIfTrueElseHide("gameOverText", gameState.gameOver);
-  // showIfTrueElseHide("waitingOnGame", gameState.waiting);
 }
 
 function showIfTrueElseHide(elementId, boolean) {

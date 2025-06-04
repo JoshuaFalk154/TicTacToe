@@ -1,10 +1,6 @@
 package com.tictactoe.tictactoe;
 
+import com.tictactoe.tictactoe.gameWrapping.GamePhase;
 
-import java.util.Objects;
-
-public record GameState(boolean gameOver, int [][] board, String winner) {
-    public GameState{
-        Objects.requireNonNull(board);
-    }
+public record GameState(GamePhase gamePhase, int[][] board, String winner, String playersTurnPlayerSessionId) {
 }

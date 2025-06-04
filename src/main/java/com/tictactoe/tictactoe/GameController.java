@@ -1,40 +1,40 @@
 package com.tictactoe.tictactoe;
 
-import com.tictactoe.tictactoe.game.Cell;
 import com.tictactoe.tictactoe.game.Game;
+import com.tictactoe.tictactoe.gameWrapping.GamePhase;
+import com.tictactoe.tictactoe.gameWrapping.GameService;
+import com.tictactoe.tictactoe.gameWrapping.GameSession;
+import com.tictactoe.tictactoe.gameWrapping.Move;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.util.HtmlUtils;
 
 @RestController
 @RequiredArgsConstructor
 public class GameController {
 
     private final GameService gameService;
-    private final GameServiceNew gameServiceNew;
     private final Mapper mapper;
     private final SimpMessagingTemplate simpMessagingTemplate;
 
 
-    private GameStateNew buildGameState(GameSession gameSession) {
+    private GameState buildGameState(GameSession gameSession) {
         int[][] intBoard = null;
         String winner = null;
         Game game = gameSession.getGame();
         String playersTurnPlayerSessionId = null;
 
-        if (gameSession.gamePhase.equals(GamePhase.IN_PROGRESS) || gameSession.gamePhase.equals(GamePhase.GAME_OVER)) {
+        if (gameSession.getGamePhase().equals(GamePhase.IN_PROGRESS) || gameSession.getGamePhase().equals(GamePhase.GAME_OVER)) {
             intBoard = mapper.cellBoardToIntBoard(gameSession.getGame().getBoard());
         }
 
-        if (gameSession.gamePhase.equals(GamePhase.IN_PROGRESS)) {
+        if (gameSession.getGamePhase().equals(GamePhase.IN_PROGRESS)) {
             // TODO not player-name but rather session id (currently the same so it's okay)
             playersTurnPlayerSessionId = game.getPlayerToMove().name();
         }
@@ -43,7 +43,7 @@ public class GameController {
             winner = gameSession.getGame().getWinner().get().cell().toString();
         }
 
-        return new GameStateNew(gameSession.getGamePhase(), intBoard, winner, playersTurnPlayerSessionId);
+        return new GameState(gameSession.getGamePhase(), intBoard, winner, playersTurnPlayerSessionId);
     }
 
 
@@ -63,7 +63,7 @@ public class GameController {
 
     @MessageMapping("/take-move/{gameSessionId}")
     @SendTo("/topic/current-game/{gameSessionId}")
-    public GameStateNew takeMove(@DestinationVariable String gameSessionId, Move move, @Header("simpSessionId") String sessionId) {
+    public GameState takeMove(@DestinationVariable String gameSessionId, Move move, @Header("simpSessionId") String sessionId) {
         GameSession gameSession = gameService.getGameSessionByGameSessionId(gameSessionId);
         GamePhase gamePhase = gameSession.getGamePhase();
 
@@ -80,7 +80,7 @@ public class GameController {
 
     @MessageMapping("/leave-game/{gameSessionId}")
     @SendTo("/topic/current-game/{gameSessionId}")
-    public GameStateNew leaveGame(@Header("simpSessionId") String sessionId, @DestinationVariable String gameSessionId) {
+    public GameState leaveGame(@Header("simpSessionId") String sessionId, @DestinationVariable String gameSessionId) {
         GameSession gameSession = gameService.getGameSessionByGameSessionId(gameSessionId);
         GamePhase gamePhase = gameSession.getGamePhase();
 
@@ -96,7 +96,7 @@ public class GameController {
 
     @MessageMapping("/restart-game/{gameSessionId}")
     @SendTo("/topic/current-game/{gameSessionId}")
-    public GameStateNew restartGame(@Header("simpSessionId") String sessionId, @DestinationVariable String gameSessionId) {
+    public GameState restartGame(@Header("simpSessionId") String sessionId, @DestinationVariable String gameSessionId) {
         GameSession gameSession = gameService.getGameSessionByGameSessionId(gameSessionId);
         GamePhase gamePhase = gameSession.getGamePhase();
 
@@ -116,7 +116,7 @@ public class GameController {
 
     @MessageMapping("/trigger-game-update/{gameSessionId}")
     @SendTo("/topic/current-game/{gameSessionId}")
-    public GameStateNew gameUpdate(@Header("simpSessionId") String sessionId, @DestinationVariable String gameSessionId) {
+    public GameState gameUpdate(@Header("simpSessionId") String sessionId, @DestinationVariable String gameSessionId) {
         GameSession gameSession = gameService.getGameSessionByGameSessionId(gameSessionId);
 
         return buildGameState(gameSession);

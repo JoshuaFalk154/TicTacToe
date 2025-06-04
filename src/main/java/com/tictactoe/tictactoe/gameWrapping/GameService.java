@@ -1,8 +1,5 @@
-package com.tictactoe.tictactoe;
+package com.tictactoe.tictactoe.gameWrapping;
 
-import com.tictactoe.tictactoe.game.Cell;
-import com.tictactoe.tictactoe.game.Game;
-import com.tictactoe.tictactoe.game.Player;
 import lombok.Getter;
 import org.springframework.stereotype.Service;
 

@@ -1,4 +1,4 @@
-package com.tictactoe.tictactoe;
+package com.tictactoe.tictactoe.gameWrapping;
 
 import com.tictactoe.tictactoe.game.Cell;
 import com.tictactoe.tictactoe.game.Game;

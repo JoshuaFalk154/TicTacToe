@@ -1,4 +1,4 @@
-package com.tictactoe.tictactoe;
+package com.tictactoe.tictactoe.gameWrapping;
 
 public enum GamePhase {
     WAITING_FOR_PLAYERS,

@@ -3,6 +3,7 @@
 var stompClient = null;
 var sessionId = null;
 var gameSessionId = null;
+var gameSubscription = null;
 
 function setConnected(connected) {
   $("#connect").prop("disabled", connected);
@@ -57,11 +58,21 @@ function showGreeting(message) {
 function updateGame(gameState) {
   var parentDiv = document.getElementById("game");
   var childTable = document.getElementById("tictactoetableid");
-  if (gameState.gameStarted) {
+
+  if (gameState.gamePhase == "WAITING_FOR_PLAYERS") {
+    showElement("waitingOnGame");
+    hideElement("gameOverText");
+    hideElement("yourTurn");
+    hideElement("othersTurn");
     if (childTable !== null) {
       parentDiv?.removeChild(childTable);
     }
+  }
 
+  if (gameState.gamePhase == "IN_PROGRESS") {
+    if (childTable !== null) {
+      parentDiv?.removeChild(childTable);
+    }
     childTable = createTable(
       transformArray(gameState.board),
       "tictactoetableid",
@@ -69,9 +80,57 @@ function updateGame(gameState) {
     );
     parentDiv?.appendChild(childTable);
     initEventListenerTable();
+
+    hideElement("waitingOnGame");
+    hideElement("gameOverText");
+    showIfTrueElseHide(
+      "yourTurn",
+      sessionId == gameState.playersTurnPlayerSessionId
+    );
+    showIfTrueElseHide(
+      "othersTurn",
+      sessionId != gameState.playersTurnPlayerSessionId
+    );
   }
-  showIfTrueElseHide("gameOverText", gameState.gameOver);
-  showIfTrueElseHide("waitingOnGame", gameState.waiting);
+
+  if (gameState.gamePhase == "GAME_OVER") {
+    showElement("gameOverText");
+    hideElement("waitingOnGame");
+    hideElement("yourTurn");
+    hideElement("othersTurn");
+
+    if (gameState.board !== null) {
+      if (childTable !== null) {
+        parentDiv?.removeChild(childTable);
+      }
+      childTable = createTable(
+        transformArray(gameState.board),
+        "tictactoetableid",
+        "board"
+      );
+      parentDiv?.appendChild(childTable);
+      initEventListenerTable();
+    }
+    // TODO remove table
+  }
+
+  // var parentDiv = document.getElementById("game");
+  // var childTable = document.getElementById("tictactoetableid");
+  // if (gameState.gameStarted) {
+  //   if (childTable !== null) {
+  //     parentDiv?.removeChild(childTable);
+  //   }
+
+  //   childTable = createTable(
+  //     transformArray(gameState.board),
+  //     "tictactoetableid",
+  //     "board"
+  //   );
+  //   parentDiv?.appendChild(childTable);
+  //   initEventListenerTable();
+  // }
+  // showIfTrueElseHide("gameOverText", gameState.gameOver);
+  // showIfTrueElseHide("waitingOnGame", gameState.waiting);
 }
 
 function showIfTrueElseHide(elementId, boolean) {
@@ -101,7 +160,7 @@ function showElement(elementId) {
 function hideElement(elementId) {
   var element = document.getElementById(elementId);
   if (element?.style.display !== "none") {
-    element.style.display = "block";
+    element.style.display = "none";
   }
 }
 
@@ -184,7 +243,7 @@ function subToCurrentGameSession() {
     console.log("error, no current session id");
     return;
   }
-  stompClient.subscribe(
+  gameSubscription = stompClient.subscribe(
     "/topic/current-game/" + gameSessionId,
     function (greeting) {
       showGreeting(JSON.parse(greeting.body));
@@ -198,20 +257,23 @@ function subToCurrentGameSession() {
   );
 }
 
+// function restartGame() {
+//   $("#game").empty();
+//   hideElement("restartGame");
+// }
+
 function restartGame() {
-  $("#game").empty();
-  hideElement("restartGame");
+  stompClient.send("/app/restart-game/" + gameSessionId, {});
 }
 
-// function makeMove(row, col) {
-//   var move = {
-//     row: row,
-//     col: col,
-//   };
-//   var moveJSON = JSON.stringify(move);
-//   console.log(moveJSON);
-//   stompClient.send("/app/take-move", {}, moveJSON);
-// }
+function leaveGame() {
+  stompClient.send("/app/leave-game/" + gameSessionId, {});
+  gameSubscription.unsubscribe();
+  hideElement("waitingOnGame");
+  hideElement("gameOverText");
+  gameSessionId = null;
+}
+
 function makeMove(row, col) {
   var move = {
     row: row,
@@ -219,7 +281,7 @@ function makeMove(row, col) {
   };
   var moveJSON = JSON.stringify(move);
   console.log(moveJSON);
-  stompClient.send("/app/current-game/" + gameSessionId, {}, moveJSON);
+  stompClient.send("/app/take-move/" + gameSessionId, {}, moveJSON);
 }
 
 function initEventListenerTable() {
@@ -252,5 +314,8 @@ $(function () {
   });
   $("#startGame").click(function () {
     startGame();
+  });
+  $("#leaveGame").click(function () {
+    leaveGame();
   });
 });

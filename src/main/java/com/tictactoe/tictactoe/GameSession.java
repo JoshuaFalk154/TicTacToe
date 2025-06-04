@@ -14,9 +14,11 @@ public class GameSession {
     String id;
     Map<String, Player> playerSessionIdToPlayer = new HashMap<>();
     Game game;
+    GamePhase gamePhase;
 
     public GameSession(String lobbyId) {
         this.id = lobbyId;
+        this.gamePhase = GamePhase.WAITING_FOR_PLAYERS;
     }
 
     public void addPlayer(String playerSessionId, String playerName) {
@@ -37,13 +39,35 @@ public class GameSession {
         }
     }
 
+
+    public void removePlayer(String playerSessionId) {
+        if (gamePhase.equals(GamePhase.GAME_OVER)) {
+            throw new IllegalStateException("try to remove player in invalid game-phase: " + gamePhase);
+        }
+
+        playerSessionIdToPlayer.remove(playerSessionId);
+    }
+
     public Game startNewGame() {
         if (!canStartGame()) {
             throw new IllegalStateException("lobby not ready to start game");
         }
 
-        List<Player> players = playerSessionIdToPlayer.values().stream().toList();
-        this.game = new Game(players.get(0), players.get(1));
+
+        this.gamePhase = GamePhase.IN_PROGRESS;
+
+        // assign cells new, in case new player joins
+        List<Map.Entry<String, Player>> list = playerSessionIdToPlayer.entrySet().stream().toList();
+        Player player1 = list.get(0).getValue();
+        Player player2 = list.get(1).getValue();
+
+        Player newPlayer1 = new Player(player1.name(), Cell.X);
+        Player newPlayer2 = new Player(player2.name(), Cell.O);
+
+        playerSessionIdToPlayer.put(list.getFirst().getKey(), newPlayer1);
+        playerSessionIdToPlayer.put(list.get(1).getKey(), newPlayer2);
+
+        this.game = new Game(newPlayer1, newPlayer2);
         return this.game;
     }
 
@@ -61,12 +85,19 @@ public class GameSession {
         }
 
         this.game.makeMove(playerSessionIdToPlayer.get(playerSessionId), row, col);
+        if (this.game.isOver()) {
+            this.gamePhase = GamePhase.GAME_OVER;
+        }
     }
 
     public boolean isAvailable() {
         return playerSessionIdToPlayer.size() != 2;
     }
 
+    public void resetGameSession() {
+        gamePhase = GamePhase.WAITING_FOR_PLAYERS;
+        game = null;
+    }
 }
 
 

@@ -23,15 +23,6 @@ function connect() {
     setConnected(true);
     sessionId = /\/([^\/]+)\/websocket/.exec(socket._transport.url)[1];
     console.log("Connected: " + frame);
-    stompClient.subscribe("/topic/greetings", function (greeting) {
-      showGreeting(JSON.parse(greeting.body));
-    });
-
-    stompClient.subscribe("/topic/game", function (gameState) {
-      console.log("JSON.parse(gameState.body");
-      console.log(JSON.parse(gameState.body));
-      updateGame(JSON.parse(gameState.body));
-    });
   });
 }
 
@@ -41,18 +32,6 @@ function disconnect() {
   }
   setConnected(false);
   console.log("Disconnected");
-}
-
-function sendName() {
-  stompClient.send(
-    "/app/hello",
-    {},
-    JSON.stringify({ name: $("#name").val() })
-  );
-}
-
-function showGreeting(message) {
-  $("#greetings").append("<tr><td>" + message.message + "</td></tr>");
 }
 
 function updateGame(gameState) {
@@ -217,10 +196,6 @@ function getCurrentGame() {
   stompClient.send("/app/trigger-game-update/" + gameSessionId, {});
 }
 
-// function initGame() {
-//   stompClient.send("/app/init-game/" + gameSessionId, {});
-// }
-
 function subToCurrentGameSession() {
   if (gameSessionId == null) {
     console.log("error, no current session id");
@@ -228,22 +203,11 @@ function subToCurrentGameSession() {
   }
   gameSubscription = stompClient.subscribe(
     "/topic/current-game/" + gameSessionId,
-    function (greeting) {
-      showGreeting(JSON.parse(greeting.body));
-    }
-  );
-  stompClient.subscribe(
-    "/topic/current-game/" + gameSessionId,
     function (gameState) {
       updateGame(JSON.parse(gameState.body));
     }
   );
 }
-
-// function restartGame() {
-//   $("#game").empty();
-//   hideElement("restartGame");
-// }
 
 function restartGame() {
   stompClient.send("/app/restart-game/" + gameSessionId, {});
@@ -252,8 +216,17 @@ function restartGame() {
 function leaveGame() {
   stompClient.send("/app/leave-game/" + gameSessionId, {});
   gameSubscription.unsubscribe();
-  hideElement("waitingOnGame");
   hideElement("gameOverText");
+  hideElement("waitingOnGame");
+  hideElement("yourTurn");
+  hideElement("othersTurn");
+
+  var parentDiv = document.getElementById("game");
+  var childTable = document.getElementById("tictactoetableid");
+  if (childTable !== null) {
+    parentDiv?.removeChild(childTable);
+  }
+
   gameSessionId = null;
 }
 
@@ -285,9 +258,6 @@ $(function () {
   });
   $("#disconnect").click(function () {
     disconnect();
-  });
-  $("#send").click(function () {
-    sendName();
   });
   $("#restartGame").click(function () {
     restartGame();

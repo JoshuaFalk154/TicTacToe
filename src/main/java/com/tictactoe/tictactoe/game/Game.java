@@ -62,8 +62,12 @@ public class Game {
         if (playerHasLine(playerOne)) return Optional.of(playerOne);
         if (playerHasLine(playerTwo)) return Optional.of(playerTwo);
         return Optional.empty();
-
     }
+
+    public boolean isTie() {
+        return getWinner().isEmpty() && boardIsFull();
+    }
+
 
     public void updatePlayerToMove() {
         if (playerToMove.equals(playerOne)) {

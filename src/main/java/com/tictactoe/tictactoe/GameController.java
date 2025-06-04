@@ -1,10 +1,7 @@
 package com.tictactoe.tictactoe;
 
 import com.tictactoe.tictactoe.game.Game;
-import com.tictactoe.tictactoe.gameWrapping.GamePhase;
-import com.tictactoe.tictactoe.gameWrapping.GameService;
-import com.tictactoe.tictactoe.gameWrapping.GameSession;
-import com.tictactoe.tictactoe.gameWrapping.Move;
+import com.tictactoe.tictactoe.gameWrapping.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.Header;
@@ -15,6 +12,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 public class GameController {
@@ -24,26 +23,67 @@ public class GameController {
     private final SimpMessagingTemplate simpMessagingTemplate;
 
 
+//    private GameState buildGameState(GameSession gameSession) {
+//        int[][] intBoard = null;
+//        String winner = null;
+//        Game game = gameSession.getGame();
+//        String playersTurnPlayerSessionId = null;
+//
+//        if (gameSession.getGamePhase().equals(GamePhase.IN_PROGRESS) || gameSession.getGamePhase().equals(GamePhase.GAME_OVER)) {
+//            intBoard = mapper.cellBoardToIntBoard(gameSession.getGame().getBoard());
+//        }
+//
+//        if (gameSession.getGamePhase().equals(GamePhase.IN_PROGRESS)) {
+//            // TODO not player-name but rather session id (currently the same so it's okay)
+//            playersTurnPlayerSessionId = game.getPlayerToMove().name();
+//        }
+//
+//        if (game != null && gameSession.getGame().isOver()) {
+//            winner = gameSession.getGame().getWinner().get().cell().toString();
+//        }
+//
+//        return new GameState(gameSession.getGamePhase(), intBoard, winner, playersTurnPlayerSessionId);
+//    }
+
     private GameState buildGameState(GameSession gameSession) {
         int[][] intBoard = null;
-        String winner = null;
+        PlayerSession winner = null;
+        PlayerSession playerTurn = null;
+        PlayerSession playerOne = null;
+        PlayerSession playerTwo = null;
+        Outcome outcome = Outcome.NONE;
+
         Game game = gameSession.getGame();
-        String playersTurnPlayerSessionId = null;
 
         if (gameSession.getGamePhase().equals(GamePhase.IN_PROGRESS) || gameSession.getGamePhase().equals(GamePhase.GAME_OVER)) {
             intBoard = mapper.cellBoardToIntBoard(gameSession.getGame().getBoard());
         }
 
         if (gameSession.getGamePhase().equals(GamePhase.IN_PROGRESS)) {
-            // TODO not player-name but rather session id (currently the same so it's okay)
-            playersTurnPlayerSessionId = game.getPlayerToMove().name();
+            playerTurn = gameSession.getPlayerTurn();
+            List<PlayerSession> players = gameSession.getPlayers();
+            if (players.size() != 2) {
+                throw new IllegalStateException("Game running but not two players!");
+            } else {
+                playerOne = players.get(0);
+                playerTwo = players.get(1);
+            }
         }
 
-        if (game != null && gameSession.getGame().isOver()) {
-            winner = gameSession.getGame().getWinner().get().cell().toString();
+        if (game != null && gameSession.getGame().isOver() && gameSession.getWinner() != null) {
+            winner = gameSession.getWinner();
         }
 
-        return new GameState(gameSession.getGamePhase(), intBoard, winner, playersTurnPlayerSessionId);
+        if (game != null && gameSession.getGamePhase().equals(GamePhase.GAME_OVER)) {
+            if (gameSession.getWinner() != null) {
+                winner = gameSession.getWinner();
+                outcome = Outcome.WINNER_EXISTS;
+            } else {
+                outcome = Outcome.TIE;
+            }
+        }
+
+        return new GameState(gameSession.getGamePhase(), intBoard, winner, playerTurn, playerOne, playerTwo, outcome);
     }
 
 

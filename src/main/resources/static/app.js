@@ -34,6 +34,12 @@ function disconnect() {
   console.log("Disconnected");
 }
 
+// function showYourPlayerType() {
+//   var parentDiv = document.getElementById("game");
+//   var yourPlayerType = document.createElement("p");
+//   parentDiv.
+// }
+
 function updateGame(gameState) {
   var parentDiv = document.getElementById("game");
   var childTable = document.getElementById("tictactoetableid");
@@ -43,6 +49,9 @@ function updateGame(gameState) {
     hideElement("gameOverText");
     hideElement("yourTurn");
     hideElement("othersTurn");
+    hideElement("youWon");
+    hideElement("youLost");
+    hideElement("aTie");
     if (childTable !== null) {
       parentDiv?.removeChild(childTable);
     }
@@ -62,13 +71,13 @@ function updateGame(gameState) {
 
     hideElement("waitingOnGame");
     hideElement("gameOverText");
-    showIfTrueElseHide(
-      "yourTurn",
-      sessionId == gameState.playersTurnPlayerSessionId
-    );
+    hideElement("youWon");
+    hideElement("youLost");
+    hideElement("aTie");
+    showIfTrueElseHide("yourTurn", sessionId == gameState.playerTurn.sessionId);
     showIfTrueElseHide(
       "othersTurn",
-      sessionId != gameState.playersTurnPlayerSessionId
+      sessionId != gameState.playerTurn.sessionId
     );
   }
 
@@ -91,7 +100,13 @@ function updateGame(gameState) {
       parentDiv?.appendChild(childTable);
       initEventListenerTable();
     }
-    // TODO remove table
+    if (gameState.outcome == "TIE") {
+      showElement("aTie");
+    } else if (gameState.winner.sessionId == sessionId) {
+      showElement("youWon");
+    } else {
+      showElement("youLost");
+    }
   }
 }
 

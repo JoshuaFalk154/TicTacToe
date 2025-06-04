@@ -12,9 +12,10 @@ import java.util.stream.Collectors;
 public class GameSession {
 
     String id;
-    Map<String, Player> playerSessionIdToPlayer = new HashMap<>();
+    Map<String, PlayerSession> playerSessionIdToPlayerSession = new HashMap<>();
     Game game;
     GamePhase gamePhase;
+
 
     public GameSession(String lobbyId) {
         this.id = lobbyId;
@@ -22,21 +23,23 @@ public class GameSession {
     }
 
     public void addPlayer(String playerSessionId, String playerName) {
-        if (playerSessionIdToPlayer.isEmpty()) {
-            playerSessionIdToPlayer.put(playerSessionId, new Player(playerName, Cell.X));
-        } else if (playerSessionIdToPlayer.size() == 1) {
-            if (playerSessionIdToPlayer.get(playerSessionId) != null) {
+        if (playerSessionIdToPlayerSession.isEmpty()) {
+            playerSessionIdToPlayerSession.put(playerSessionId, new PlayerSession(playerSessionId, playerName, null));
+        } else if (playerSessionIdToPlayerSession.size() == 1) {
+            if (playerSessionIdToPlayerSession.get(playerSessionId) != null) {
                 throw new IllegalArgumentException("player with the following id already exists: " + playerSessionId);
             }
-            Set<String> playerNames = playerSessionIdToPlayer.values().stream().map(Player::name).collect(Collectors.toSet());
+
+            Set<String> playerNames = playerSessionIdToPlayerSession.values().stream().map(PlayerSession::name).collect(Collectors.toSet());
             if (playerNames.contains(playerName)) {
                 throw new IllegalArgumentException("player with the following name already exists: " + playerName);
             }
 
-            playerSessionIdToPlayer.put(playerSessionId, new Player(playerName, Cell.O));
+            playerSessionIdToPlayerSession.put(playerSessionId, new PlayerSession(playerSessionId, playerName, null));
         } else {
             throw new IllegalStateException("already two players exists");
         }
+
     }
 
 
@@ -45,7 +48,7 @@ public class GameSession {
             throw new IllegalStateException("try to remove player in invalid game-phase: " + gamePhase);
         }
 
-        playerSessionIdToPlayer.remove(playerSessionId);
+        playerSessionIdToPlayerSession.remove(playerSessionId);
     }
 
     public Game startNewGame() {
@@ -53,21 +56,19 @@ public class GameSession {
             throw new IllegalStateException("lobby not ready to start game");
         }
 
-
         this.gamePhase = GamePhase.IN_PROGRESS;
 
-        // assign cells new, in case new player joins
-        List<Map.Entry<String, Player>> list = playerSessionIdToPlayer.entrySet().stream().toList();
-        Player player1 = list.get(0).getValue();
-        Player player2 = list.get(1).getValue();
+        List<PlayerSession> playerSessions = playerSessionIdToPlayerSession.values().stream().toList();
+        PlayerSession player1 = playerSessions.get(0);
+        PlayerSession player2 = playerSessions.get(1);
 
-        Player newPlayer1 = new Player(player1.name(), Cell.X);
-        Player newPlayer2 = new Player(player2.name(), Cell.O);
+        player1 = player1.withAssignment(Assignment.X);
+        player2 = player2.withAssignment(Assignment.O);
+        playerSessionIdToPlayerSession.put(player1.sessionId(), player1);
+        playerSessionIdToPlayerSession.put(player2.sessionId(), player2);
 
-        playerSessionIdToPlayer.put(list.getFirst().getKey(), newPlayer1);
-        playerSessionIdToPlayer.put(list.get(1).getKey(), newPlayer2);
 
-        this.game = new Game(newPlayer1, newPlayer2);
+        this.game = new Game(playerSessionToPlayer(player1), playerSessionToPlayer(player2));
         return this.game;
     }
 
@@ -76,27 +77,69 @@ public class GameSession {
     }
 
     public boolean canStartGame() {
-        return playerSessionIdToPlayer.size() == 2;
+        return playerSessionIdToPlayerSession.size() == 2;
     }
 
     public void makeMove(String playerSessionId, int row, int col) {
-        if (playerSessionIdToPlayer.get(playerSessionId) == null) {
+        if (playerSessionIdToPlayerSession.get(playerSessionId) == null) {
             throw new IllegalArgumentException("No player in this game with the following player-session-id " + playerSessionId);
         }
 
-        this.game.makeMove(playerSessionIdToPlayer.get(playerSessionId), row, col);
+        this.game.makeMove(playerSessionToPlayer(playerSessionIdToPlayerSession.get(playerSessionId)), row, col);
         if (this.game.isOver()) {
             this.gamePhase = GamePhase.GAME_OVER;
         }
     }
 
     public boolean isAvailable() {
-        return playerSessionIdToPlayer.size() != 2;
+        return playerSessionIdToPlayerSession.size() != 2;
     }
 
     public void resetGameSession() {
         gamePhase = GamePhase.WAITING_FOR_PLAYERS;
         game = null;
+    }
+
+    public PlayerSession getPlayerTurn() {
+        if (!gamePhase.equals(GamePhase.IN_PROGRESS)) {
+            throw new IllegalStateException("Game not in progress. No players turn!");
+        }
+
+        return playerSessionIdToPlayerSession.get(getGame().getPlayerToMove().name());
+    }
+
+    /**
+     * returns winner if exists, else return null (tie)
+     *
+     * @return
+     */
+    public PlayerSession getWinner() {
+        if (!gamePhase.equals(GamePhase.GAME_OVER)) {
+            throw new IllegalStateException("Game not over. No winner!");
+        }
+
+        if (game.getWinner().isEmpty()) {
+            return null;
+        }
+
+        return playerSessionIdToPlayerSession.get(game.getWinner().get().name());
+    }
+
+    public boolean isTie() {
+        if (!gamePhase.equals(GamePhase.GAME_OVER)) {
+            throw new IllegalStateException("Game not over. No winner!");
+        }
+
+        return game.isTie();
+    }
+
+    public List<PlayerSession> getPlayers() {
+        return Collections.unmodifiableList(playerSessionIdToPlayerSession.values().stream().toList());
+    }
+
+    public Player playerSessionToPlayer(PlayerSession playerSession) {
+        Cell cell = playerSession.assignment().equals(Assignment.X) ? Cell.X : Cell.O;
+        return new Player(playerSession.sessionId(), cell);
     }
 }
 

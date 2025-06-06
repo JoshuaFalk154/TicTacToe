@@ -3,26 +3,48 @@ body {
 }
 
 .board td {
-  width: 150px;
-  height: 150px;
+  width: 120px;
+  height: 120px;
   text-align: center;
   border: 1px solid;
   font-size: 60px;
 }
 
+#game {
+  padding: 20px;
+  margin: 12px 12px 12px 12px;
+  text-align: center;
+}
 
+.joinGame {
+  margin: 12px 12px 12px 12px;
+}
 
 .board {
   background-color: rgb(91, 78, 239);
   margin: 0px auto;
 }
 
+#buttons > * {
+  margin: 12px 12px 12px 12px;
+}
+
 .board .light {
+}
+
+.my-form {
+  margin: 12px 12px 12px 12px;
+  display: inline-flex;
+}
+
+.my-form > * {
+  margin-left: 2px;
+  margin-right: 2px;
 }
 
 #main-content {
   max-width: 940px;
-  padding: 2em 3em;
+  padding: 1em 2em;
   margin: 0 auto 20px;
   background-color: #fff;
   border: 1px solid #e5e5e5;

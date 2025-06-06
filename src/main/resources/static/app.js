@@ -34,24 +34,11 @@ function disconnect() {
   console.log("Disconnected");
 }
 
-// function showYourPlayerType() {
-//   var parentDiv = document.getElementById("game");
-//   var yourPlayerType = document.createElement("p");
-//   parentDiv.
-// }
-
 function updateGame(gameStatus) {
   var parentDiv = document.getElementById("game");
   var childTable = document.getElementById("tictactoetableid");
 
   if (gameStatus.gameSessionState == "WAITING_ON_PLAYERS") {
-    // showElement("waitingOnGame");
-    // hideElement("gameOverText");
-    // hideElement("yourTurn");
-    // hideElement("othersTurn");
-    // hideElement("youWon");
-    // hideElement("youLost");
-    // hideElement("aTie");
     showGameElementsGameWaitingHideElse();
     if (childTable !== null) {
       parentDiv?.removeChild(childTable);
@@ -70,24 +57,9 @@ function updateGame(gameStatus) {
     showGameElementsGameRunningHideElse(gameStatus);
     parentDiv?.appendChild(childTable);
     initEventListenerTable();
-
-    // hideElement("waitingOnGame");
-    // hideElement("gameOverText");
-    // hideElement("youWon");
-    // hideElement("youLost");
-    // hideElement("aTie");
-    // showIfTrueElseHide("yourTurn", sessionId == gameStatus.playerTurn.id);
-    // showIfTrueElseHide("othersTurn", sessionId != gameStatus.playerTurn.id);
-    //updatePlayerShowing(gameStatus);
-    // showGameElementsGameRunningHideElse();
   }
 
   if (gameStatus.gameSessionState == "GAME_OVER") {
-    // showElement("gameOverText");
-    // hideElement("waitingOnGame");
-    // hideElement("yourTurn");
-    // hideElement("othersTurn");
-    // showElement("restartGame");
     showGameElementsGameOverHideElse();
 
     if (gameStatus.board !== null) {
@@ -127,16 +99,11 @@ function showGameElementsGameRunningHideElse(gameStatus) {
   hideAllChildrenWithId("game");
   if (sessionId == gameStatus.playerTurn.id) {
     var text = "Your Turn: " + gameStatus.playerTurn.assignment;
-    //$("#yourTurn").html(text);
     document.getElementById("yourTurn").innerHTML = text;
     showElement("yourTurn");
   } else {
     showElement("othersTurn");
   }
-
-  // showIfTrueElseHide("yourTurn", sessionId == gameStatus.playerTurn.id);
-  // showIfTrueElseHide("othersTurn", sessionId != gameStatus.playerTurn.id);
-  //updatePlayerShowing(gameStatus);
 }
 
 function hideAllChildrenWithId(parentId) {
@@ -155,28 +122,6 @@ function addYourTurnAssignment(gameStatus) {
       "Your turn " + gameStatus.playerTurn.assignment
     );
   }
-}
-
-function updatePlayerShowing(gameStatus) {
-  var assignment = gameStatus.playerTurn.assignment;
-  var youAre = document.getElementById("youAre");
-  var textNode = document.createTextNode("Your are " + assignment);
-  youAre.innerHTML = "";
-  youAre?.appendChild(textNode);
-  showElement("youAre");
-}
-
-function getMyPlayer(playerOne, playerTwo) {
-  return getPlayerById(playerOne, playerTwo, sessionId);
-}
-
-function getPlayerById(playerOne, playerTwo, playerId) {
-  if (playerOne.id == playerId) {
-    return playerOne;
-  } else if (playerTwo == playerId) {
-    return playerTwo;
-  }
-  return null;
 }
 
 function showIfTrueElseHide(elementId, boolean) {
@@ -250,12 +195,11 @@ function createTable(tableData, tableId, tableClass) {
   return table;
 }
 
-function startGame() {
-  // stompClient.send("/app/init-game/" + gameSessionId, {});
-}
-
 async function joinGame() {
-  const url = "http://localhost:8080/join-game?";
+  //const url = "http://localhost:8080/join-game?";
+  var url = window.location.origin;
+  url += "/join-game?";
+  console.log(url);
   try {
     const response = await fetch(
       url +
@@ -295,19 +239,13 @@ function subToCurrentGameSession() {
 
 function restartGame() {
   stompClient.send("/app/restart-game/" + gameSessionId, {});
+  hideElement("restartGame");
 }
 
 function leaveGame() {
   stompClient.send("/app/leave-game/" + gameSessionId, {});
   gameSubscription.unsubscribe();
-
   hideAllChildrenWithId("game");
-
-  // hideElement("gameOverText");
-  // hideElement("waitingOnGame");
-  // hideElement("yourTurn");
-  // hideElement("othersTurn");
-
   var parentDiv = document.getElementById("game");
   var childTable = document.getElementById("tictactoetableid");
   if (childTable !== null) {
@@ -351,9 +289,6 @@ $(function () {
   });
   $("#joinGame").click(function () {
     joinGame();
-  });
-  $("#startGame").click(function () {
-    startGame();
   });
   $("#leaveGame").click(function () {
     leaveGame();

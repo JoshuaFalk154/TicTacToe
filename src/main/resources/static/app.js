@@ -40,74 +40,143 @@ function disconnect() {
 //   parentDiv.
 // }
 
-function updateGame(gameState) {
+function updateGame(gameStatus) {
   var parentDiv = document.getElementById("game");
   var childTable = document.getElementById("tictactoetableid");
 
-  if (gameState.gamePhase == "WAITING_FOR_PLAYERS") {
-    showElement("waitingOnGame");
-    hideElement("gameOverText");
-    hideElement("yourTurn");
-    hideElement("othersTurn");
-    hideElement("youWon");
-    hideElement("youLost");
-    hideElement("aTie");
+  if (gameStatus.gameSessionState == "WAITING_ON_PLAYERS") {
+    // showElement("waitingOnGame");
+    // hideElement("gameOverText");
+    // hideElement("yourTurn");
+    // hideElement("othersTurn");
+    // hideElement("youWon");
+    // hideElement("youLost");
+    // hideElement("aTie");
+    showGameElementsGameWaitingHideElse();
     if (childTable !== null) {
       parentDiv?.removeChild(childTable);
     }
   }
 
-  if (gameState.gamePhase == "IN_PROGRESS") {
+  if (gameStatus.gameSessionState == "RUNNING") {
     if (childTable !== null) {
       parentDiv?.removeChild(childTable);
     }
     childTable = createTable(
-      transformArray(gameState.board),
+      transformArray(gameStatus.board),
       "tictactoetableid",
       "board"
     );
+    showGameElementsGameRunningHideElse(gameStatus);
     parentDiv?.appendChild(childTable);
     initEventListenerTable();
 
-    hideElement("waitingOnGame");
-    hideElement("gameOverText");
-    hideElement("youWon");
-    hideElement("youLost");
-    hideElement("aTie");
-    showIfTrueElseHide("yourTurn", sessionId == gameState.playerTurn.sessionId);
-    showIfTrueElseHide(
-      "othersTurn",
-      sessionId != gameState.playerTurn.sessionId
-    );
+    // hideElement("waitingOnGame");
+    // hideElement("gameOverText");
+    // hideElement("youWon");
+    // hideElement("youLost");
+    // hideElement("aTie");
+    // showIfTrueElseHide("yourTurn", sessionId == gameStatus.playerTurn.id);
+    // showIfTrueElseHide("othersTurn", sessionId != gameStatus.playerTurn.id);
+    //updatePlayerShowing(gameStatus);
+    // showGameElementsGameRunningHideElse();
   }
 
-  if (gameState.gamePhase == "GAME_OVER") {
-    showElement("gameOverText");
-    hideElement("waitingOnGame");
-    hideElement("yourTurn");
-    hideElement("othersTurn");
-    showElement("restartGame");
+  if (gameStatus.gameSessionState == "GAME_OVER") {
+    // showElement("gameOverText");
+    // hideElement("waitingOnGame");
+    // hideElement("yourTurn");
+    // hideElement("othersTurn");
+    // showElement("restartGame");
+    showGameElementsGameOverHideElse();
 
-    if (gameState.board !== null) {
+    if (gameStatus.board !== null) {
       if (childTable !== null) {
         parentDiv?.removeChild(childTable);
       }
       childTable = createTable(
-        transformArray(gameState.board),
+        transformArray(gameStatus.board),
         "tictactoetableid",
         "board"
       );
       parentDiv?.appendChild(childTable);
       initEventListenerTable();
     }
-    if (gameState.outcome == "TIE") {
+    if (gameStatus.outcome == "TIE") {
       showElement("aTie");
-    } else if (gameState.winner.sessionId == sessionId) {
+    } else if (gameStatus.winner.id == sessionId) {
       showElement("youWon");
     } else {
       showElement("youLost");
     }
   }
+}
+
+function showGameElementsGameWaitingHideElse() {
+  hideAllChildrenWithId("game");
+  showElement("waitingOnGame");
+}
+
+function showGameElementsGameOverHideElse() {
+  hideAllChildrenWithId("game");
+  showElement("gameOverText");
+  showElement("restartGame");
+}
+
+function showGameElementsGameRunningHideElse(gameStatus) {
+  hideAllChildrenWithId("game");
+  if (sessionId == gameStatus.playerTurn.id) {
+    var text = "Your Turn: " + gameStatus.playerTurn.assignment;
+    //$("#yourTurn").html(text);
+    document.getElementById("yourTurn").innerHTML = text;
+    showElement("yourTurn");
+  } else {
+    showElement("othersTurn");
+  }
+
+  // showIfTrueElseHide("yourTurn", sessionId == gameStatus.playerTurn.id);
+  // showIfTrueElseHide("othersTurn", sessionId != gameStatus.playerTurn.id);
+  //updatePlayerShowing(gameStatus);
+}
+
+function hideAllChildrenWithId(parentId) {
+  const parent = document.getElementById(parentId);
+  for (const child of parent.children) {
+    if (child.id !== "") {
+      hideElement(child.id);
+    }
+  }
+}
+
+function addYourTurnAssignment(gameStatus) {
+  if (sessionId == gameStatus.playerTurn.id) {
+    var yourTurn = document.getElementById("yourTurn");
+    var textNode = document.createTextNode(
+      "Your turn " + gameStatus.playerTurn.assignment
+    );
+  }
+}
+
+function updatePlayerShowing(gameStatus) {
+  var assignment = gameStatus.playerTurn.assignment;
+  var youAre = document.getElementById("youAre");
+  var textNode = document.createTextNode("Your are " + assignment);
+  youAre.innerHTML = "";
+  youAre?.appendChild(textNode);
+  showElement("youAre");
+}
+
+function getMyPlayer(playerOne, playerTwo) {
+  return getPlayerById(playerOne, playerTwo, sessionId);
+}
+
+function getPlayerById(playerOne, playerTwo, playerId) {
+  if (playerOne.id == playerId) {
+    return playerOne;
+  } else if (playerTwo == playerId) {
+    return playerTwo;
+  }
+  return null;
 }
 
 function showIfTrueElseHide(elementId, boolean) {
@@ -231,10 +300,13 @@ function restartGame() {
 function leaveGame() {
   stompClient.send("/app/leave-game/" + gameSessionId, {});
   gameSubscription.unsubscribe();
-  hideElement("gameOverText");
-  hideElement("waitingOnGame");
-  hideElement("yourTurn");
-  hideElement("othersTurn");
+
+  hideAllChildrenWithId("game");
+
+  // hideElement("gameOverText");
+  // hideElement("waitingOnGame");
+  // hideElement("yourTurn");
+  // hideElement("othersTurn");
 
   var parentDiv = document.getElementById("game");
   var childTable = document.getElementById("tictactoetableid");

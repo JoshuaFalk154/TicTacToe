@@ -1,9 +1,9 @@
 package com.tictactoe.tictactoe.game;
 
 public enum Cell {
+    EMPTY("_"),
     X("X"),
-    O("O"),
-    EMPTY("_");
+    O("O");
 
     private String name;
 

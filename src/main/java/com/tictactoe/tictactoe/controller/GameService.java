@@ -1,9 +1,14 @@
-package com.tictactoe.tictactoe.gameWrapping;
+package com.tictactoe.tictactoe.controller;
 
+import com.tictactoe.tictactoe.gameSession.GameSession;
+import com.tictactoe.tictactoe.gameSession.GameSessionState;
 import lombok.Getter;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @Getter
@@ -17,7 +22,7 @@ public class GameService {
 
     public GameSession getAvailableGameSession() {
         Optional<GameSession> availableSession = gameSessionIdToGameSession.values().stream()
-                .filter(GameSession::isAvailable)
+                .filter(gameSession -> gameSession.getGameSessionState().equals(GameSessionState.WAITING_ON_PLAYERS))
                 .findFirst();
 
         if (availableSession.isPresent()) {

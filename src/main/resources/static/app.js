@@ -5,75 +5,34 @@ var sessionId = null;
 var gameSessionId = null;
 var gameSubscription = null;
 
-function setConnected(connected) {
-  $("#connect").prop("disabled", connected);
-  $("#disconnect").prop("disabled", !connected);
-  if (connected) {
-    $("#conversation").show();
-  } else {
-    $("#conversation").hide();
-  }
-  $("#greetings").html("");
-}
+window.onload = function () {
+  connect();
+};
 
 function connect() {
   var socket = new SockJS("/stomp-endpoint");
   stompClient = Stomp.over(socket);
   stompClient.connect({}, function (frame) {
-    setConnected(true);
     sessionId = /\/([^\/]+)\/websocket/.exec(socket._transport.url)[1];
     console.log("Connected: " + frame);
   });
 }
 
-function disconnect() {
-  if (stompClient !== null) {
-    stompClient.disconnect();
-  }
-  setConnected(false);
-  console.log("Disconnected");
-}
-
 function updateGame(gameStatus) {
-  var parentDiv = document.getElementById("game");
-  var childTable = document.getElementById("tictactoetableid");
-
   if (gameStatus.gameSessionState == "WAITING_ON_PLAYERS") {
     showGameElementsGameWaitingHideElse();
-    if (childTable !== null) {
-      parentDiv?.removeChild(childTable);
-    }
+    removeTableIfExists("game", "tictactoetableid");
   }
 
   if (gameStatus.gameSessionState == "RUNNING") {
-    if (childTable !== null) {
-      parentDiv?.removeChild(childTable);
-    }
-    childTable = createTable(
-      transformArray(gameStatus.board),
-      "tictactoetableid",
-      "board"
-    );
     showGameElementsGameRunningHideElse(gameStatus);
-    parentDiv?.appendChild(childTable);
-    initEventListenerTable();
+    recreateTTTTable(gameStatus);
   }
 
   if (gameStatus.gameSessionState == "GAME_OVER") {
     showGameElementsGameOverHideElse();
+    recreateTTTTable(gameStatus);
 
-    if (gameStatus.board !== null) {
-      if (childTable !== null) {
-        parentDiv?.removeChild(childTable);
-      }
-      childTable = createTable(
-        transformArray(gameStatus.board),
-        "tictactoetableid",
-        "board"
-      );
-      parentDiv?.appendChild(childTable);
-      initEventListenerTable();
-    }
     if (gameStatus.outcome == "TIE") {
       showElement("aTie");
     } else if (gameStatus.winner.id == sessionId) {
@@ -81,6 +40,30 @@ function updateGame(gameStatus) {
     } else {
       showElement("youLost");
     }
+  }
+}
+
+function removeTableIfExists(parentId, tableId) {
+  var parentDiv = document.getElementById(parentId);
+  var childTable = document.getElementById(tableId);
+  if (childTable !== null) {
+    parentDiv?.removeChild(childTable);
+  }
+}
+
+function recreateTTTTable(gameStatus) {
+  var parentDiv = document.getElementById("game");
+  var childTable = document.getElementById("tictactoetableid");
+  removeTableIfExists("game", "tictactoetableid");
+
+  if (gameStatus.board !== null) {
+    childTable = createTable(
+      transformArray(gameStatus.board),
+      "tictactoetableid",
+      "board"
+    );
+    parentDiv?.appendChild(childTable);
+    initEventListenerTable();
   }
 }
 
@@ -111,32 +94,6 @@ function hideAllChildrenWithId(parentId) {
   for (const child of parent.children) {
     if (child.id !== "") {
       hideElement(child.id);
-    }
-  }
-}
-
-function addYourTurnAssignment(gameStatus) {
-  if (sessionId == gameStatus.playerTurn.id) {
-    var yourTurn = document.getElementById("yourTurn");
-    var textNode = document.createTextNode(
-      "Your turn " + gameStatus.playerTurn.assignment
-    );
-  }
-}
-
-function showIfTrueElseHide(elementId, boolean) {
-  var element = document.getElementById(elementId);
-  // show element
-  if (boolean) {
-    if (element?.style.display === "none") {
-      element.style.display = "block";
-      return;
-    }
-  }
-  // hide element
-  else {
-    if (element?.style.display !== "none") {
-      element.style.display = "none";
     }
   }
 }
@@ -196,7 +153,6 @@ function createTable(tableData, tableId, tableClass) {
 }
 
 async function joinGame() {
-  //const url = "http://localhost:8080/join-game?";
   var url = window.location.origin;
   url += "/join-game?";
   console.log(url);
@@ -277,12 +233,6 @@ function initEventListenerTable() {
 $(function () {
   $("form").on("submit", function (e) {
     e.preventDefault();
-  });
-  $("#connect").click(function () {
-    connect();
-  });
-  $("#disconnect").click(function () {
-    disconnect();
   });
   $("#restartGame").click(function () {
     restartGame();

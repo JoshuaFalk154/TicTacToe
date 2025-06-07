@@ -1,83 +1,7 @@
-<!-- <!DOCTYPE html>
-   <html>
-     <head>
-       <title>Hello WebSocket</title>
-       <link href="/webjars/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
-       <link href="/main.css" rel="stylesheet" />
-       <script src="/webjars/jquery/jquery.min.js"></script>
-       <script src="/webjars/sockjs-client/sockjs.min.js"></script>
-       <script src="/webjars/stomp-websocket/stomp.min.js"></script>
-       <script src="/app.js"></script>
-     </head>
-     <body>
-       <noscript
-         ><h2 style="color: #ff0000">
-           Seems your browser doesn't support Javascript! Websocket relies on
-           Javascript being enabled. Please enable Javascript and reload this page!
-         </h2></noscript
-       >
-       <div id="main-content" class="container">
-         <div class="row">
-           <div class="col-md-4">
-             <form class="form-inline">
-               <div class="form-group">
-                 <button id="connect" class="btn btn-default" type="submit">
-                   Connect
-                 </button>
-                 <button
-                   id="disconnect"
-                   class="btn btn-default"
-                   type="submit"
-                   disabled="disabled"
-                 >
-                   Disconnect
-                 </button>
-               </div>
-             </form>
-           </div>
-           <div class="col-md-4">
-             <form class="form-inline">
-               <div class="form-group">
-                 <button id="joinGame" class="btn btn-default" type="submit">
-                   Join Game
-                 </button>
-                 <button id="leaveGame" class="btn btn-default" type="submit">
-                   Leave Game
-                 </button>
-               </div>
-             </form>
-           </div>
-           <div class="col-md-4">
-             <form class="form-inline">
-               <button
-                 id="restartGame"
-                 class="btn btn-default"
-                 type="submit"
-                 style="display: none"
-               >
-                 Restart Game
-               </button>
-             </form>
-           </div>
-         </div>
-         <hr />
-         <div id="game">
-           <p id="waitingOnGame" style="display: none">Waiting...</p>
-           <h2 id="gameOverText" style="display: none">Game Over</h2>
-           <p id="youWon" style="display: none">You Won!</p>
-           <p id="youLost" style="display: none">You Lost!</p>
-           <p id="aTie" style="display: none">Tie!</p>
-           <p id="yourTurn" style="display: none">Your Turn!</p>
-           <p id="othersTurn" style="display: none">Others Turn!</p>
-           <p id="youAre" style="display: none"></p>
-         </div>
-       </div>
-     </body>
-   </html> -->
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Hello WebSocket</title>
+    <title>Tic Tac Toe</title>
     <link href="/webjars/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
     <link href="/main.css" rel="stylesheet" />
     <script src="/webjars/jquery/jquery.min.js"></script>
@@ -94,19 +18,6 @@
     </noscript>
     <div id="main-content" class="container">
       <div id="buttons">
-        <form class="my-form">
-          <button id="connect" class="btn btn-dark" type="submit">
-            Connect
-          </button>
-          <button
-            id="disconnect"
-            class="btn btn-dark"
-            type="submit"
-            disabled="disabled"
-          >
-            Disconnect
-          </button>
-        </form>
         <form class="my-form">
           <button id="joinGame" class="btn btn-dark" type="submit">
             Join Game
@@ -137,7 +48,6 @@
         <h3 id="aTie" style="display: none">Tie!</h3>
         <h3 id="yourTurn" style="display: none">Your Turn!</h3>
         <h3 id="othersTurn" style="display: none">Others Turn!</h3>
-        <h3 id="youAre" style="display: none"></h3>
       </div>
     </div>
   </body>

@@ -80,6 +80,7 @@ function showGameElementsGameOverHideElse() {
 
 function showGameElementsGameRunningHideElse(gameStatus) {
   hideAllChildrenWithId("game");
+  hideElement("restartGame");
   if (sessionId == gameStatus.playerTurn.id) {
     var text = "Your Turn: " + gameStatus.playerTurn.assignment;
     document.getElementById("yourTurn").innerHTML = text;
@@ -169,6 +170,8 @@ async function joinGame() {
     }
 
     gameSessionId = await response.text();
+    hideElement("joinGame");
+    showElement("leaveGame");
     subToCurrentGameSession();
     getCurrentGame();
   } catch (error) {
@@ -208,6 +211,9 @@ function leaveGame() {
     parentDiv?.removeChild(childTable);
   }
 
+   hideElement("leaveGame");
+   showElement("joinGame");
+   hideElement("restartGame");
   gameSessionId = null;
 }
 

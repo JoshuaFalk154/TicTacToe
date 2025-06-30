@@ -34,7 +34,7 @@ public class GameSession {
         }
 
         playerSessionIdToPlayerSession.values().stream()
-                .filter(ps -> ps.id().equals(playerSession.id()) || ps.name().equals(playerSession.name()) || ps.assignment().equals(playerSession.assignment()))
+                .filter(ps -> ps.id().equals(playerSession.id()) || ps.name().equals(playerSession.name()))
                 .findAny()
                 .ifPresent(p -> {
                     throw new IllegalArgumentException("Player already exists");

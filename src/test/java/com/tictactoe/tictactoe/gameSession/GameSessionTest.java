@@ -54,8 +54,7 @@ public class GameSessionTest {
     private static Stream<Arguments> provideAlreadyExistingUser() {
         return Stream.of(
                 Arguments.of(new PlayerSession("idsome1", "p2", Assignment.O)),
-                Arguments.of(new PlayerSession("idsome2", "p1", Assignment.O)),
-                Arguments.of(new PlayerSession("idsome2", "p2", Assignment.X))
+                Arguments.of(new PlayerSession("idsome2", "p1", Assignment.O))
         );
     }
 

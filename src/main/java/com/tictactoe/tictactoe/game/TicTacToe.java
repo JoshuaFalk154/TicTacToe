@@ -4,11 +4,11 @@ import java.util.*;
 
 public class TicTacToe {
 
-    Map<String, Assignment> playerNameToAssignment = new HashMap<>();
-    Cell[][] board;
-    String playerNameToMove;
-    String winner;
-    GameState gameState;
+    private Map<String, Assignment> playerNameToAssignment = new HashMap<>();
+    private Cell[][] board;
+    private String playerNameToMove;
+    private String winner;
+    private GameState gameState;
 
     public TicTacToe(Player playerOne, Player playerTwo) {
         setPlayers(playerOne, playerTwo);
@@ -18,8 +18,21 @@ public class TicTacToe {
         winner = null;
     }
 
+
+    /**
+     * @param playerName The name of the player to move.
+     * @param row
+     * @param col
+     * @throws java.lang.IllegalArgumentException If row or col is out of index.
+     * @throws java.lang.IllegalStateException    If the method called in wrong state.
+     * @throws java.lang.IllegalStateException    If wrong player is making a move.
+     * @throws java.lang.IllegalStateException    If the cell is already used.
+     */
     public void makeMove(String playerName, int row, int col) {
         Objects.requireNonNull(playerName);
+        if (row >= board.length || col >= board[0].length) {
+            throw new IllegalArgumentException("Row or col out of index");
+        }
 
         if (!gameState.equals(GameState.RUNNING)) {
             throw new IllegalStateException("Can only make move during running game");
@@ -49,10 +62,15 @@ public class TicTacToe {
             List<String> playerNames = getPlayerNames();
             winner = playerHasLine(playerNames.getFirst()) ? playerNames.getFirst() : playerNames.get(1);
         }
-
-
     }
 
+    /**
+     * Sets players
+     *
+     * @param p1
+     * @param p2
+     * @throws IllegalArgumentException If p1 and p2 have same name or assignment (X/O)
+     */
     private void setPlayers(Player p1, Player p2) {
         Objects.requireNonNull(p1);
         Objects.requireNonNull(p2);
@@ -71,7 +89,6 @@ public class TicTacToe {
             Arrays.fill(cells, Cell.EMPTY);
         }
     }
-
 
     private boolean boardIsFull() {
         for (Cell[] cells : board) {
@@ -117,8 +134,90 @@ public class TicTacToe {
         return false;
     }
 
+//    private boolean playerHasLine(String player) {
+//        if (playerNameToAssignment.get(player) == null) {
+//            throw new IllegalArgumentException("Player is invalid");
+//        }
+//
+//        Cell playerCell = assignmentToCell(playerNameToAssignment.get(player));
+//
+//        for (Cell[] cells : board) {
+//            int count = 0;
+//            for (int col = 0; col < board[0].length; col++) {
+//                if (cells[col].equals(playerCell)) {
+//                    count++;
+//                }
+//
+//                if (col == board[0].length - 1 && count == board[0].length) {
+//                    return true;
+//                }
+//            }
+//        }
+//
+//        for (int col = 0; col < board[0].length; col++) {
+//            int count = 0;
+//            for (int row = 0; row < board.length; row++) {
+//                if (board[row][col].equals(playerCell)) {
+//                    count++;
+//                }
+//
+//                if (row == board[0].length - 1 && count == board[0].length) {
+//                    return true;
+//                }
+//            }
+//        }
+//
+//        for (int row = 0; row < board.length; row++) {
+//            int count = 0;
+//            if (board[row][row].equals(playerCell)) {
+//                count++;
+//            }
+//
+//            if (row == board.length - 1 && count == board.length) {
+//                return true;
+//            }
+//        }
+//
+//        int col = board.length-1;
+//        int count = 0;
+//        for (int row = 0; row < board.length; row++) {
+//            if (board[row][col].equals(playerCell)) {
+//                count++;
+//            }
+//
+//            if (row == board.length-1 && count == board.length) {
+//                return true;
+//            }
+//            col--;
+//        }
+//
+//        return false;
+//
+//
+//
+////        if (board[0][0].equals(playerCell) & board[0][1].equals(playerCell) & board[0][2].equals(playerCell))
+////            return true;
+////        if (board[1][0].equals(playerCell) & board[1][1].equals(playerCell) & board[1][2].equals(playerCell))
+////            return true;
+////        if (board[2][0].equals(playerCell) & board[2][1].equals(playerCell) & board[2][2].equals(playerCell))
+////            return true;
+////
+////        if (board[0][0].equals(playerCell) & board[1][0].equals(playerCell) & board[2][0].equals(playerCell))
+////            return true;
+////        if (board[0][1].equals(playerCell) & board[1][1].equals(playerCell) & board[2][1].equals(playerCell))
+////            return true;
+////        if (board[0][2].equals(playerCell) & board[1][2].equals(playerCell) & board[2][2].equals(playerCell))
+////            return true;
+////
+////        if (board[0][0].equals(playerCell) & board[1][1].equals(playerCell) & board[2][2].equals(playerCell))
+////            return true;
+////        if (board[0][2].equals(playerCell) & board[1][1].equals(playerCell) & board[2][0].equals(playerCell))
+////            return true;
+////        return false;
+//    }
+
     public List<String> getPlayerNames() {
-        return Collections.unmodifiableList(playerNameToAssignment.keySet().stream().toList());
+        return playerNameToAssignment.keySet().stream().toList();
     }
 
     private Cell assignmentToCell(Assignment assignment) {

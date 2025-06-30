@@ -31,25 +31,12 @@ Mögliche Erweiterungen
 - HTML
 - CSS
 - JavaScript
+- Maven
 
-## Getting Started
-
-### Dependencies
-
-* Describe any prerequisites, libraries, OS version, etc., needed before installing program.
-* ex. Windows 10
-
-### Installing
-
-* How/where to download your program
-* Any modifications needed to be made to files/folders
-
-### Executing program
-
-* How to run the program
-* Step-by-step bullets
-```  
-code blocks for commands  
-```  
+## Programm verwenden
+1. Projekt herunterladen und in einer IDE (z.B. Intellij IDEA) öffnen. Das Projekt muss als Maven-Projekt erkannt werden.
+2. Da Lombok verwendet wird, muss dies in der IDE konfiguriert werden.
+3. Programm ausführen.
+4. Öffnen in http://localhost:8080/
 
 

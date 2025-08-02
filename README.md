@@ -34,9 +34,20 @@ Mögliche Erweiterungen
 - Maven
 
 ## Programm verwenden
+### Verwende Docker
+#### Lade Docker-Image herunter
+```
+docker pull joshua579/tictactoe:latest
+```
+#### Starte container
+```
+docker run -p 8585:8080 joshua579/tictactoe:latest
+```
+#### Öffne im Browser 
+http://localhost:8585/
+
+### Lokal in der IDE ausführen
 1. Projekt herunterladen und in einer IDE (z.B. Intellij IDEA) öffnen. Das Projekt muss als Maven-Projekt erkannt werden.
 2. Da Lombok verwendet wird, muss dies in der IDE konfiguriert werden.
 3. Programm ausführen.
 4. Öffnen in http://localhost:8080/
-
-
